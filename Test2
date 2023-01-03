@@ -1,48 +1,47 @@
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockSapling;
-import net.minecraft.block.IGrowable;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Blocks;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraftforge.event.entity.player.BonemealEvent;
-import net.minecraftforge.fml.common.eventhandler.Event.Result;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.resources.I18n;
+import net.minecraftforge.client.event.GuiOpenEvent;
+import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import java.util.Random;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
-public class GlitchedApple {
+public class SpawnChoice {
 
-  public static Item glitchedApple;
+  private static final String[] CHOICES = {"The Wild", "Fire", "Genocide", "Error"};
+  private static boolean hasMadeChoice = false;
 
-  public static void init() {
-    glitchedApple = new Item().setUnlocalizedName("glitched_apple").setCreativeTab(CreativeTabs.tabFood);
-    GameRegistry.registerItem(glitchedApple, "glitched_apple");
-  }
-
+  @SideOnly(Side.CLIENT)
   @SubscribeEvent
-  public void onUseBonemeal(BonemealEvent event) {
-    if (!event.getWorld().isRemote) {
-      Random random = new Random();
-      if (random.nextInt(100) < 3) { // 3% chance of dropping a glitched apple
-        event.setResult(Result.ALLOW);
-        IBlockState blockState = event.getBlock();
-        World world = event.getWorld();
-        BlockPos pos = event.getPos();
-        if (blockState.getBlock() == Blocks.SAPLING) {
-          if (!world.isRemote) {
-            ((BlockSapling)blockState.getBlock()).grow(world, pos, blockState, world.rand);
-          }
-          event.setResult(Result.ALLOW);
-        }
-        dropGlitchedApple(world, pos);
-      }
+  public void onGuiOpen(GuiOpenEvent event) {
+    if (event.getGui() == null && !hasMadeChoice) {
+      Minecraft.getMinecraft().displayGuiScreen(new SpawnChoiceGui());
+      event.setCanceled(true);
     }
   }
 
-  public void dropGlitchedApple(World world, BlockPos pos) {
-    ItemStack stack = new ItemStack(glitchedApple, 1);
-    Block.spawnAsEntity(world, pos, stack);
+  @SideOnly(Side.CLIENT)
+  public static class SpawnChoiceGui extends GuiScreen {
+
+    public void initGui() {
+      this.buttonList.clear();
+      for (int i = 0; i < CHOICES.length; i++) {
+        this.buttonList.add(new GuiButton(i, this.width / 2 - 100, this.height / 4 + i * 24, I18n.format(CHOICES[i])));
+      }
+    }
+
+    protected void actionPerformed(GuiButton button) {
+      hasMadeChoice = true;
+      int choice = button.id;
+      // Do something with the choice here
+      Minecraft.getMinecraft().displayGuiScreen(null);
+    }
+
+    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+      this.drawDefaultBackground();
+      this.drawCenteredString(this.fontRenderer, "Make a choice:", this.width / 2, this.height / 4 - 60, 16777215);
+      super.drawScreen(mouseX, mouseY, partialTicks);
+    }
   }
 }
