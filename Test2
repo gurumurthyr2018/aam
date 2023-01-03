@@ -1,11 +1,48 @@
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockSapling;
+import net.minecraft.block.IGrowable;
+import net.minecraft.block.state.IBlockState;
+import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.World;
+import net.minecraftforge.event.entity.player.BonemealEvent;
+import net.minecraftforge.fml.common.eventhandler.Event.Result;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import java.util.Random;
 
-Hi Tianyang.
+public class GlitchedApple {
 
-Hi Aarav.
-hello
-oooeooeoeoeoe
+  public static Item glitchedApple;
 
+  public static void init() {
+    glitchedApple = new Item().setUnlocalizedName("glitched_apple").setCreativeTab(CreativeTabs.tabFood);
+    GameRegistry.registerItem(glitchedApple, "glitched_apple");
+  }
 
-278
+  @SubscribeEvent
+  public void onUseBonemeal(BonemealEvent event) {
+    if (!event.getWorld().isRemote) {
+      Random random = new Random();
+      if (random.nextInt(100) < 3) { // 3% chance of dropping a glitched apple
+        event.setResult(Result.ALLOW);
+        IBlockState blockState = event.getBlock();
+        World world = event.getWorld();
+        BlockPos pos = event.getPos();
+        if (blockState.getBlock() == Blocks.SAPLING) {
+          if (!world.isRemote) {
+            ((BlockSapling)blockState.getBlock()).grow(world, pos, blockState, world.rand);
+          }
+          event.setResult(Result.ALLOW);
+        }
+        dropGlitchedApple(world, pos);
+      }
+    }
+  }
 
-y8hiuhi
+  public void dropGlitchedApple(World world, BlockPos pos) {
+    ItemStack stack = new ItemStack(glitchedApple, 1);
+    Block.spawnAsEntity(world, pos, stack);
+  }
+}
