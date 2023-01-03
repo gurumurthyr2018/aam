@@ -42,7 +42,6 @@ public class SpawnChoice {
       this.drawDefaultBackground();
       this.drawCenteredString(this.fontRenderer, "Make a choice:", this.width / 2, this.height / 4 - 60, 16777215);
       super.drawScreen(mouseX, mouseY, partialTicks);
-      
     }
   }
 }
