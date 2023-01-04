@@ -21,7 +21,7 @@ public class LavaAbility {
             if (cooldown > 0) {
                 cooldown--;
             }
-            if (player.isSneaking() && cooldown == 0) {
+            if (cooldown == 0) {
                 // Get all entities within radius
                 List<Entity> entities = world.getEntitiesWithinAABB(Entity.class, player.getBoundingBox().grow(RADIUS));
                 for (Entity entity : entities) {
