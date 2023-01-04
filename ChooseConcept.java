@@ -1,47 +1,58 @@
+Copy code
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.client.resources.I18n;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.util.text.StringTextComponent;
 import net.minecraftforge.client.event.GuiOpenEvent;
-import net.minecraftforge.client.event.GuiScreenEvent;
-import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
-public class SpawnChoice {
+@Mod.EventBusSubscriber
+public class ModEventHandler {
+    private static boolean hasOpenedWelcomeScreen = false;
 
-  private static final String[] CHOICES = {"The Wild", "Fire", "Genocide", "Error"};
-  private static boolean hasMadeChoice = false;
-
-  @SideOnly(Side.CLIENT)
-  @SubscribeEvent
-  public void onGuiOpen(GuiOpenEvent event) {
-    if (event.getGui() == null && !hasMadeChoice) {
-      Minecraft.getMinecraft().displayGuiScreen(new SpawnChoiceGui());
-      event.setCanceled(true);
-    }
-  }
-
-  @SideOnly(Side.CLIENT)
-  public static class SpawnChoiceGui extends GuiScreen {
-
-    public void initGui() {
-      this.buttonList.clear();
-      for (int i = 0; i < CHOICES.length; i++) {
-        this.buttonList.add(new GuiButton(i, this.width / 2 - 100, this.height / 4 + i * 24, I18n.format(CHOICES[i])));
-      }
+    @SubscribeEvent
+    public static void onGuiOpen(GuiOpenEvent event) {
+        if (!hasOpenedWelcomeScreen && event.getGui() == null) {
+            // Open the welcome screen on the first join
+            event.setGui(new WelcomeScreen());
+            hasOpenedWelcomeScreen = true;
+        }
     }
 
-    protected void actionPerformed(GuiButton button) {
-      hasMadeChoice = true;
-      int choice = button.id;
-      // Do something with the choice here
-      Minecraft.getMinecraft().displayGuiScreen(null);
-    }
+    public static class WelcomeScreen extends Screen {
+        public WelcomeScreen() {
+            super(new StringTextComponent("Welcome to the Mod"));
+        }
 
-    public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-      this.drawDefaultBackground();
-      this.drawCenteredString(this.fontRenderer, "Make a choice:", this.width / 2, this.height / 4 - 60, 16777215);
-      super.drawScreen(mouseX, mouseY, partialTicks);
+        @Override
+        public void init() {
+            // Add the "The Wild" button
+            this.addButton(new Button(this.width / 2 - 100, this.height / 4 + 24, 200, 20, "The Wild", (button) -> {
+                // Handle button click here
+            }));
+
+            // Add the "Fire" button
+            this.addButton(new Button(this.width / 2 - 100, this.height / 4 + 48, 200, 20, "Fire", (button) -> {
+                // Handle button click here
+            }));
+
+            // Add the "Genocide" button
+            this.addButton(new Button(this.width / 2 - 100, this.height / 4 + 72, 200, 20, "Genocide", (button) -> {
+                // Handle button click here
+            }));
+
+            // Add the "Error" button
+            this.addButton(new Button(this.width / 2 - 100, this.height / 4 + 96, 200, 20, "Error", (button) -> {
+                // Handle button click here
+            }));
+        }
+
+        @Override
+        public void render(int mouseX, int mouseY, float partialTicks) {
+            this.renderBackground();
+            this.drawCenteredString(this.font, this.title.getFormattedText(), this.width / 2, this.height / 4 - 60, 0xFFFFFF);
+            super.render(mouseX, mouseY, partialTicks);
+        }
     }
-  }
 }
