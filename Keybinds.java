@@ -24,7 +24,7 @@ public class ModKeyBindings {
         if (power3Pressed) {
             // Power 3 is being pressed
         }
-          if (power4Pressed) {
+        if (power4Pressed) {
             // Power 4 is being pressed
         }
         if (power5Pressed) {
