@@ -124,10 +124,33 @@ if (power3Pressed) {
         }
     }
     }
-
 }
 if (power4Pressed) {
-    // Power 4 is being pressed
+    import net.minecraft.entity.player.PlayerEntity;
+    import net.minecraft.particles.ParticleTypes;
+    import net.minecraft.util.math.Vec3d;
+
+    public class SpectatorAbility {
+
+    // The duration of the spectator mode in ticks
+    private static final int SPECTATOR_DURATION = 25 * 20;
+
+    public static void spectator(PlayerEntity player) {
+        // Set the player's game mode to spectator
+        player.setGameType(GameType.SPECTATOR);
+
+        // Set the player's spectator duration
+        player.getDataManager().set(PlayerEntity.SPECTATOR_TIMER, SPECTATOR_DURATION);
+
+        // Spawn red particles around the player
+        for (int i = 0; i < 360; i += 15) {
+        double x = Math.cos(Math.toRadians(i)) * 0.5;
+        double z = Math.sin(Math.toRadians(i)) * 0.5;
+        Vec3d particleVec = new Vec3d(x, 0, z);
+        player.world.addParticle(ParticleTypes.REDSTONE, player.getPosX() + particleVec.x, player.getPosY() + 0.5, player.getPosZ() + particleVec.z, 0, 0, 0);
+        }
+    }
+    }
 }
 if (power5Pressed) {
     // Power 5 is being pressed
