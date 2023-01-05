@@ -37,10 +37,94 @@ if (power1Pressed) {
     }
 }
 if (power2Pressed) {
-    // Power 2 is being pressed
+    import net.minecraft.entity.Entity;
+    import net.minecraft.entity.player.PlayerEntity;
+    import net.minecraft.util.math.BlockPos;
+    import net.minecraft.world.World;
+    import net.minecraftforge.event.TickEvent;
+    import net.minecraftforge.eventbus.api.SubscribeEvent;
+
+    import java.util.List;
+
+    public class LavaAbility {
+        private static final int COOLDOWN_TIME = 45 * 20;  // 45 seconds in ticks
+        private static final int RADIUS = 10;
+
+        private int cooldown = 0;
+
+        @SubscribeEvent
+        public void onPlayerTick(TickEvent.PlayerTickEvent event) {
+            PlayerEntity player = event.player;
+            World world = player.getEntityWorld();
+            if (!world.isRemote) {
+                if (cooldown > 0) {
+                    cooldown--;
+                }
+                if (cooldown == 0) {
+                    // Get all entities within radius
+                    List<Entity> entities = world.getEntitiesWithinAABB(Entity.class, player.getBoundingBox().grow(RADIUS));
+                    for (Entity entity : entities) {
+                        BlockPos pos = new BlockPos(entity.getPosX(), entity.getPosY() - 1, entity.getPosZ());
+                        // Set block below entity to lava
+                        world.setBlockState(pos, Blocks.LAVA.getDefaultState());
+                    }
+                    cooldown = COOLDOWN_TIME;
+                }
+            }
+        }
+    }
 }
 if (power3Pressed) {
-    // Power 3 is being pressed
+    import net.minecraft.entity.Entity;
+    import net.minecraft.entity.LivingEntity;
+    import net.minecraft.entity.player.PlayerEntity;
+    import net.minecraft.util.math.AxisAlignedBB;
+    import net.minecraft.util.math.Vec3d;
+
+    public class DashAbility {
+
+    // The distance that the player will dash
+    private static final double DASH_DISTANCE = 10.0;
+
+    // The duration of the dash in ticks
+    private static final int DASH_DURATION = 10;
+
+    // The player's speed when dashing
+    private static final double DASH_SPEED = 1.5;
+
+    // The player's acceleration when dashing
+    private static final double DASH_ACCELERATION = 0.1;
+
+    public static void dash(PlayerEntity player) {
+        // Calculate the player's dash direction
+        Vec3d lookVec = player.getLookVec();
+        Vec3d dashVec = new Vec3d(lookVec.x * DASH_SPEED, lookVec.y * DASH_SPEED, lookVec.z * DASH_SPEED);
+
+        // Set the player's motion to the dash vector
+        player.setMotion(dashVec);
+
+        // Set the player's acceleration to the dash acceleration
+        player.addVelocity(dashVec.x * DASH_ACCELERATION, dashVec.y * DASH_ACCELERATION, dashVec.z * DASH_ACCELERATION);
+
+        // Set the player's velocity to the dash speed
+        player.setVelocity(dashVec.x, dashVec.y, dashVec.z);
+
+        // Set the player's position to the dash distance
+        player.setPosition(player.getPosX() + dashVec.x * DASH_DISTANCE, player.getPosY() + dashVec.y * DASH_DISTANCE, player.getPosZ() + dashVec.z * DASH_DISTANCE);
+
+        // Set the player's dash duration
+        player.getDataManager().set(PlayerEntity.DASH_TIMER, DASH_DURATION);
+
+        // Find all entities within a bounding box centered on the player and set them on fire
+        AxisAlignedBB boundingBox = new AxisAlignedBB(player.getPosX() - 1, player.getPosY() - 1, player.getPosZ() - 1, player.getPosX() + 1, player.getPosY() + 1, player.getPosZ() + 1);
+        for (Entity entity : player.world.getEntitiesWithinAABBExcludingEntity(player, boundingBox)) {
+        if (entity instanceof LivingEntity) {
+            ((LivingEntity) entity).setFire(5);
+        }
+        }
+    }
+    }
+
 }
 if (power4Pressed) {
     // Power 4 is being pressed
