@@ -73,6 +73,7 @@ if (power2Pressed) {
             }
         }
     }
+    LavaAbility();
 }
 if (power3Pressed) {
     import net.minecraft.entity.Entity;
@@ -124,6 +125,7 @@ if (power3Pressed) {
         }
     }
     }
+    DashAbility();
 }
 if (power4Pressed) {
     import net.minecraft.entity.player.PlayerEntity;
@@ -151,9 +153,83 @@ if (power4Pressed) {
         }
     }
     }
+    SpectatorAbility();
 }
 if (power5Pressed) {
-    // Power 5 is being pressed
+    // This goes in your main mod class
+
+    // Keep track of the last time the ability was used
+    private long lastUseTime = 0;
+
+    // The ability has a 2 minute cooldown
+    private static final int COOLDOWN_DURATION = 2 * 60 * 1000;
+
+    public void shootRedLaser(EntityPlayer player) {
+        // Check if the ability is on cooldown
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastUseTime < COOLDOWN_DURATION) {
+            player.sendMessage(new TextComponentTranslation("ability.on_cooldown", COOLDOWN_DURATION / 1000));
+            return;
+        }
+        lastUseTime = currentTime;
+
+        // Get the player's facing direction
+        Vec3d lookVec = player.getLookVec();
+
+        // Spawn the laser
+        World world = player.getEntityWorld();
+        LaserEntity laser = new LaserEntity(world, player.posX, player.posY + player.getEyeHeight(), player.posZ, lookVec.x, lookVec.y, lookVec.z);
+        world.spawnEntity(laser);
+    }
+
+    // This is the laser entity class
+
+    public class LaserEntity extends Entity {
+        public LaserEntity(World worldIn, double x, double y, double z, double motionX, double motionY, double motionZ) {
+            super(worldIn);
+            this.setSize(0.5f, 0.5f);
+            this.setPosition(x, y, z);
+            this.motionX = motionX;
+            this.motionY = motionY;
+            this.motionZ = motionZ;
+        }
+
+        @Override
+        public void onUpdate() {
+            super.onUpdate();
+
+            // Move the laser
+            this.move(MoverType.SELF, this.motionX, this.motionY, this.motionZ);
+
+            // Check for collisions
+            List<Entity> entities = this.world.getEntitiesWithinAABBExcludingEntity(this, this.getBoundingBox().grow(0.5));
+            for (Entity entity : entities) {
+                if (entity instanceof EntityLivingBase) {
+                    // Deal damage to living entities
+                    entity.attackEntityFrom(DamageSource.MAGIC, 6.0f);
+
+                    // Apply levitation effect
+                    PotionEffect levitation = new PotionEffect(MobEffects.LEVITATION, 15 * 20, 1); // 15 seconds, level 2
+                    ((EntityLivingBase) entity).addPotionEffect(levitation);
+                }
+            }
+
+            // Remove the laser if it has traveled too far
+            if (this.ticksExisted > 200) { // 20 blocks
+                this.setDead();
+            }
+        }
+
+        @Override
+        protected void entityInit() {}
+
+        @Override
+        protected void readEntityFromNBT(NBTTagCompound compound) {}
+
+        @Override
+        protected void writeEntityToNBT(NBTTagCompound compound) {}
+    }
+    shootRedLaser();
 }
 if (power6Pressed) {
     // This goes in your main mod class
@@ -207,6 +283,7 @@ if (power6Pressed) {
             }
         }
     }
+    shootLavaWall();
 }
 if (power7Pressed) {
     // Power 7 is being pressed
