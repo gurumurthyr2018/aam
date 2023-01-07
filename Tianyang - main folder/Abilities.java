@@ -156,7 +156,57 @@ if (power5Pressed) {
     // Power 5 is being pressed
 }
 if (power6Pressed) {
-    // Power 6 is being pressed
+    // This goes in your main mod class
+
+    // Keep track of the last time the ability was used
+    private long lastUseTime = 0;
+
+    // The ability has a 1 minute cooldown
+    private static final int COOLDOWN_DURATION = 60 * 1000;
+
+    public void shootLavaWall(EntityPlayer player) {
+        // Check if the ability is on cooldown
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastUseTime < COOLDOWN_DURATION) {
+            player.sendMessage(new TextComponentTranslation("ability.on_cooldown", COOLDOWN_DURATION / 1000));
+            return;
+        }
+        lastUseTime = currentTime;
+
+        // Get the player's facing direction
+        EnumFacing facing = player.getHorizontalFacing();
+
+        // Get the player's position
+        BlockPos playerPos = player.getPosition();
+
+        // Calculate the position of the wall
+        BlockPos wallPos = playerPos.offset(facing, 5);
+
+        // Spawn the wall
+        World world = player.getEntityWorld();
+        for (int x = -25; x <= 25; x++) {
+            for (int y = 0; y <= 50; y++) {
+                for (int z = -25; z <= 25; z++) {
+                    BlockPos pos = wallPos.add(x, y, z);
+                    IBlockState state = Blocks.LAVA.getDefaultState();
+                    world.setBlockState(pos, state, 3);
+                }
+            }
+        }
+
+        // Push players away from the wall
+        List<Entity> entities = world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(wallPos.add(-25, 0, -25), wallPos.add(25, 50, 25)));
+        for (Entity entity : entities) {
+            if (entity instanceof EntityPlayer) {
+                Vec3d pushVector = new Vec3d(facing.getDirectionVec()).scale(5);
+                entity.addVelocity(pushVector.x, 0.2, pushVector.z);
+            }
+            if (entity instanceof EntityLivingBase) {
+                // Deal damage to living entities
+                entity.attackEntityFrom(DamageSource.LAVA, 5.0f);
+            }
+        }
+    }
 }
 if (power7Pressed) {
     // Power 7 is being pressed
